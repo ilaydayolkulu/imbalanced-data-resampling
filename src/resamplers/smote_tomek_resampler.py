@@ -3,7 +3,6 @@
 from typing import Tuple, Union
 
 import pandas as pd
-from imblearn.combine import SMOTETomek
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import TomekLinks
 
@@ -29,6 +28,7 @@ class SMOTETomekResampler(BaseResampler):
             random_state: Seed for random number generators.
             tomek_sampling_strategy: Tomek links sample removal policy ('auto', 'all', or 'not minority').
         """
+        super().__init__()
         self.k_neighbors = k_neighbors
         self.sampling_strategy = sampling_strategy
         self.random_state = random_state
@@ -59,18 +59,24 @@ class SMOTETomekResampler(BaseResampler):
                 sampling_strategy=self.tomek_sampling_strategy,
             )
 
-            resampler = SMOTETomek(
-                smote=inner_smote,
-                tomek=inner_tomek,
-                random_state=self.random_state,
-            )
+            # Stage 1: Generative SMOTE oversampling
+            X_smote, y_smote = inner_smote.fit_resample(X, y)
+            smote_generated = len(X_smote) - len(X)
 
-            X_res, y_res = resampler.fit_resample(X, y)
+            # Stage 2: Boundary noise pruning via Tomek Links
+            X_res, y_res = inner_tomek.fit_resample(X_smote, y_smote)
+            tomek_pruned = len(X_smote) - len(X_res)
 
             if not isinstance(X_res, pd.DataFrame):
                 X_res = pd.DataFrame(X_res, columns=X.columns)
             if not isinstance(y_res, pd.Series):
                 y_res = pd.Series(y_res, name=y.name)
+
+            self.last_execution_stats = {
+                "smote_generated": smote_generated,
+                "tomek_pruned": tomek_pruned,
+                "net_delta": len(X_res) - len(X),
+            }
 
             return X_res, y_res
         except Exception as exc:

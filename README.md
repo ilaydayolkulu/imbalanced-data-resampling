@@ -65,7 +65,8 @@ The pipeline is decoupled into discrete abstraction layers to eliminate monolith
                                        ▼
 +─────────────────────────────────────────────────────────────────────────────+
 |                          Data Export & Logging Layer                        |
-|        src/io_handler.py (Disk Persistence) & src/logger.py (Stdout / IPC)   |
+|   src/io_handler.py (Disk Persistence), src/logger.py (Dual-Channel Logs),  |
+|       & src/report_generator.py (Detailed ASCII Execution Reports)          |
 +─────────────────────────────────────────────────────────────────────────────+
 ```
 
@@ -74,6 +75,7 @@ The pipeline is decoupled into discrete abstraction layers to eliminate monolith
 - **Single Responsibility Principle (SRP):**
   - `IOHandler` exclusively governs disk I/O, tabular parsing, and schema invariants.
   - `PipelineConfig` strictly handles parameter validation, normalization, and path inference.
+  - `ExecutionReporter` formats and writes comprehensive profiling benchmarks, comparative class distributions, and failure audits.
   - `ResamplingPipeline` orchestrates execution lifecycle without coupling to specific algorithmic details.
   - Concrete resamplers (`SMOTEResampler`, `ADASYNResampler`, `SMOTETomekResampler`) encapsulate only their respective mathematical transformations.
 - **Open/Closed Principle (OCP):**
@@ -96,8 +98,9 @@ imbalanced-data-resampling/
     ├── config.py            # Typed PipelineConfig dataclass, CLI parser, prefix resolver
     ├── exceptions.py        # Domain exception hierarchy (ResamplingError) & ExitCode enum
     ├── io_handler.py        # Defensive data loader, k-NN feasibility check, CSV persistence
-    ├── logger.py            # Real-time stdout stream handler & structured telemetry emitter
+    ├── logger.py            # Dual-channel stdout stream & persistent UTF-8 file logger
     ├── pipeline.py          # Orchestration engine managing lifecycle and metrics
+    ├── report_generator.py  # Structured comparative benchmark & failure audit reporter
     └── resamplers/
         ├── __init__.py      # Subpackage exports
         ├── base.py          # Abstract BaseResampler (ABC) definition

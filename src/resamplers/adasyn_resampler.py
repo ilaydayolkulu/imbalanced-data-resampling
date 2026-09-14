@@ -25,6 +25,7 @@ class ADASYNResampler(BaseResampler):
             sampling_strategy: Sampling ratio (float) or predefined strategy ('auto', 'minority').
             random_state: Random seed for reproducible generation.
         """
+        super().__init__()
         self.n_neighbors = n_neighbors
         self.sampling_strategy = sampling_strategy
         self.random_state = random_state
@@ -55,6 +56,10 @@ class ADASYNResampler(BaseResampler):
                 X_res = pd.DataFrame(X_res, columns=X.columns)
             if not isinstance(y_res, pd.Series):
                 y_res = pd.Series(y_res, name=y.name)
+
+            self.last_execution_stats = {
+                "synthetic_generated": len(X_res) - len(X),
+            }
 
             return X_res, y_res
         except RuntimeError as rerr:

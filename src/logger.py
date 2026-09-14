@@ -1,51 +1,68 @@
-"""Logging utility optimized for CLI execution and C++/Qt QProcess real-time streaming."""
+"""Dual-channel logging utility optimized for CLI execution and persistent file auditing."""
 
-import json
 import logging
+from pathlib import Path
 import sys
-from typing import Any, Dict, Optional
+from typing import Optional
 
 
-def setup_logger(name: str = "ResamplingEngine", level: int = logging.INFO) -> logging.Logger:
-    """Configures and returns a logger that flushes stdout immediately for QProcess.
+def setup_logger(
+    name: str = "ResamplingEngine",
+    level: int = logging.INFO,
+    log_file_path: Optional[Path] = None,
+) -> logging.Logger:
+    """Configures and returns a dual-channel logger flushing to stdout and optional file.
 
     Args:
         name: Logger name.
         level: Logging severity level.
+        log_file_path: Optional path to append log entries in UTF-8 encoding.
 
     Returns:
         logging.Logger: Configured logger instance.
     """
     logger = logging.getLogger(name)
-    if logger.handlers:
-        return logger
-
     logger.setLevel(level)
+    logger.propagate = False
 
-    # Standard stream handler with flush guarantee
-    handler = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter(
         fmt="[%(asctime)s] [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.propagate = False
+
+    # Ensure stdout console handler is attached exactly once
+    has_console = any(isinstance(h, logging.StreamHandler) and h.stream is sys.stdout for h in logger.handlers)
+    if not has_console:
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
+    if log_file_path is not None:
+        attach_file_handler(logger, log_file_path)
 
     return logger
 
 
-def log_qt_event(event_type: str, data: Optional[Dict[str, Any]] = None) -> None:
-    """Emits a structured progress/success telemetry message to stdout for C++/Qt.
+def attach_file_handler(logger: logging.Logger, log_file_path: Path) -> None:
+    """Attaches a persistent UTF-8 FileHandler to an existing logger instance.
 
     Args:
-        event_type: Telemetry event identifier (e.g., 'PIPELINE_STARTED', 'PIPELINE_SUCCESS').
-        data: Key-value payload associated with the event.
+        logger: Target logger instance.
+        log_file_path: Destination path for the log file.
     """
-    payload = {
-        "source": "resampling_pipeline",
-        "event": event_type,
-        "payload": data or {}
-    }
-    sys.stdout.write(f"@QT_EVENT:{json.dumps(payload)}\n")
-    sys.stdout.flush()
+    resolved_path = Path(log_file_path).resolve()
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Check if a FileHandler targeting this exact file is already registered
+    for handler in logger.handlers:
+        if isinstance(handler, logging.FileHandler) and Path(handler.baseFilename).resolve() == resolved_path:
+            return
+
+    formatter = logging.Formatter(
+        fmt="[%(asctime)s] [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    file_handler = logging.FileHandler(str(resolved_path), encoding="utf-8", mode="a")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)

@@ -1,13 +1,16 @@
 """Abstract base interface for all resampling strategies."""
 
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Any, Dict, Tuple
 
 import pandas as pd
 
 
 class BaseResampler(ABC):
     """Abstract Strategy interface for imbalanced data resampling."""
+
+    def __init__(self):
+        self.last_execution_stats: Dict[str, Any] = {}
 
     @property
     @abstractmethod

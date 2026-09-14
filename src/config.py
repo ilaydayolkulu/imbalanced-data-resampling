@@ -21,6 +21,11 @@ class PipelineConfig:
     random_seed: int = 42
     tomek_sampling_strategy: str = "auto"
 
+    @property
+    def output_dir(self) -> Path:
+        """Returns the dynamic base directory for all output artifacts."""
+        return self.output_path.parent
+
     def resolved_sampling_strategy(self) -> Union[str, float]:
         """Resolves whether to use categorical strategy ('auto', 'minority') or float ratio.
 
