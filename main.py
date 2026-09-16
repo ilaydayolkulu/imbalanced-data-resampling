@@ -12,7 +12,7 @@ from typing import Optional
 
 from src.config import PipelineConfig, parse_and_validate_args
 from src.exceptions import ExitCode, ResamplingError
-from src.logger import attach_file_handler, setup_logger
+from src.logger import setup_logger
 from src.pipeline import ResamplingPipeline
 from src.report_generator import ExecutionReporter
 
@@ -42,8 +42,6 @@ def main() -> int:
 
     try:
         config = parse_and_validate_args()
-        attach_file_handler(logger, config.output_dir / "resampling_execution.log")
-
         pipeline = ResamplingPipeline(config)
         pipeline_started = True
         pipeline.run()

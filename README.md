@@ -65,7 +65,7 @@ The pipeline is decoupled into discrete abstraction layers to eliminate monolith
                                        ▼
 +─────────────────────────────────────────────────────────────────────────────+
 |                          Data Export & Logging Layer                        |
-|   src/io_handler.py (Disk Persistence), src/logger.py (Dual-Channel Logs),  |
+|   src/io_handler.py (Disk Persistence), src/logger.py (Console Logging),    |
 |       & src/report_generator.py (Detailed ASCII Execution Reports)          |
 +─────────────────────────────────────────────────────────────────────────────+
 ```
@@ -98,7 +98,7 @@ imbalanced-data-resampling/
     ├── config.py            # Typed PipelineConfig dataclass, CLI parser, prefix resolver
     ├── exceptions.py        # Domain exception hierarchy (ResamplingError) & ExitCode enum
     ├── io_handler.py        # Defensive data loader, k-NN feasibility check, CSV persistence
-    ├── logger.py            # Dual-channel stdout stream & persistent UTF-8 file logger
+    ├── logger.py            # Real-time stdout console logging utility
     ├── pipeline.py          # Orchestration engine managing lifecycle and metrics
     ├── report_generator.py  # Structured comparative benchmark & failure audit reporter
     └── resamplers/

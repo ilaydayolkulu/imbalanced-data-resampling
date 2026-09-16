@@ -141,8 +141,6 @@ class ExecutionReporter:
                 f"Total Synthetic Generated   : +{syn_gen:,} synthetic instances synthesized"
             )
 
-        log_file_path = config.output_dir / "resampling_execution.log"
-
         lines = [
             "=" * 80,
             "         IMBALANCED TABULAR DATA RESAMPLING - DETAILED EXECUTION REPORT",
@@ -200,7 +198,6 @@ class ExecutionReporter:
             "-" * 80,
             f"Balanced Dataset CSV    : {config.output_path}",
             f"CSV File Size           : {csv_size_mb:.2f} MB ({csv_size_bytes:,} bytes)",
-            f"Execution Audit Log     : {log_file_path}",
             f"Execution Report File   : {report_path}",
             "=" * 80,
             "",

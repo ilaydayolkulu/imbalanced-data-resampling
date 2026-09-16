@@ -23,8 +23,7 @@ class ResamplingPipeline:
             config: Pipeline configuration instance.
         """
         self.config = config
-        log_file = self.config.output_dir / "resampling_execution.log"
-        self.logger = setup_logger("ResamplingPipeline", log_file_path=log_file)
+        self.logger = setup_logger("ResamplingPipeline")
 
     def run(self) -> Dict[str, Any]:
         """Executes the complete ingestion -> validation -> resampling -> export cycle.
@@ -150,7 +149,6 @@ class ResamplingPipeline:
                 "output_file": str(self.config.output_path),
                 "output_dir": str(self.config.output_dir),
                 "report_file": str(report_path),
-                "log_file": str(self.config.output_dir / "resampling_execution.log"),
                 "initial_samples": len(df),
                 "final_samples": len(X_resampled),
                 "initial_counts": initial_counts,
