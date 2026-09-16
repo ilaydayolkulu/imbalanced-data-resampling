@@ -3,7 +3,7 @@
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 from src.exceptions import InvalidConfigError
 
@@ -111,7 +111,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--tomek_sampling_strategy",
         type=str,
         default="auto",
-        choices=["auto", "all", "not minority", "not_minority"],
+        choices=["auto", "all"],
         help="Undersampling strategy for Tomek Links cleaning (only applicable to SMOTE-TOMEK).",
     )
 
@@ -132,14 +132,6 @@ def parse_and_validate_args(args_list: Optional[list] = None) -> PipelineConfig:
     """
     parser = build_arg_parser()
     parsed = parser.parse_args(args_list)
-
-    # Normalize method name
-    norm_method = parsed.method.upper().replace("_", "-")
-    if norm_method == "SMOTETOMEK":
-        norm_method = "SMOTE-TOMEK"
-
-    if norm_method not in ["SMOTE", "ADASYN", "SMOTE-TOMEK"]:
-        raise InvalidConfigError(f"Unsupported method '{parsed.method}'. Choose from SMOTE, ADASYN, SMOTE-TOMEK.")
 
     # Validate k_neighbors
     if parsed.k_neighbors <= 0:
@@ -169,7 +161,7 @@ def parse_and_validate_args(args_list: Optional[list] = None) -> PipelineConfig:
         or not raw_output.suffix
     )
 
-    method_tag = norm_method.replace("-", "_").lower()
+    method_tag = parsed.method.lower() 
 
     if is_directory:
         resolved_dir = raw_output.resolve()
@@ -182,17 +174,15 @@ def parse_and_validate_args(args_list: Optional[list] = None) -> PipelineConfig:
             filename = f"resampled_{filename}"
         output_path = parent_dir / filename
 
-    # Normalize tomek_sampling_strategy
-    tomek_strat = parsed.tomek_sampling_strategy.replace("_", " ")
 
     return PipelineConfig(
         input_path=input_path,
         output_path=output_path,
         target_col=parsed.target_col.strip(),
-        method=norm_method,
+        method=parsed.method,
         k_neighbors=parsed.k_neighbors,
         sampling_strategy=parsed.sampling_strategy,
         sampling_ratio=parsed.sampling_ratio,
         random_seed=parsed.random_seed,
-        tomek_sampling_strategy=tomek_strat,
+        tomek_sampling_strategy=parsed.tomek_sampling_strategy,
     )
