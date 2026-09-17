@@ -24,7 +24,7 @@ class ResamplerFactory:
         Raises:
             InvalidConfigError: If method is unrecognized.
         """
-        method = config.method.upper().replace("_", "-")
+        method = config.method
         strategy = config.resolved_sampling_strategy()
 
         if method == "SMOTE":
@@ -41,7 +41,7 @@ class ResamplerFactory:
                 random_state=config.random_seed,
             )
 
-        if method in ["SMOTE-TOMEK", "SMOTETOMEK"]:
+        if method == "SMOTE-TOMEK":
             return SMOTETomekResampler(
                 k_neighbors=config.k_neighbors,
                 sampling_strategy=strategy,
